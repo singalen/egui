@@ -428,6 +428,26 @@ impl TopBottomPanel {
     }
 }
 
+pub trait Resizable {
+    fn can_resize_x(&self) -> bool { false }
+    fn can_resize_y(&self) -> bool { false }
+    fn resize(ui: &mut Ui, my_id: Id, new_dimensions: Pos2);
+}
+
+impl Resizable for TopBottomPanel {
+
+    fn can_resize_y(&self) -> bool { true }
+
+    fn resize(ui: &mut Ui, my_id: Id, new_dimensions: Pos2) {
+        if let Some(state) = ui.memory().id_data.get::<PanelState>(&my_id).copied() {
+            let mut new_rect = state.rect;
+            new_rect.set_height(new_dimensions.y);
+            //PanelState { rect: new_rect }.store(ui.ctx(), my_id);
+            ui.memory().id_data.insert(my_id, PanelState { rect: new_rect });
+        }
+    }
+}
+
 impl TopBottomPanel {
     /// Show the panel inside a `Ui`.
     pub fn show_inside<R>(
