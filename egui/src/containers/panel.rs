@@ -357,6 +357,7 @@ pub struct TopBottomPanel {
     resizable: bool,
     default_height: Option<f32>,
     height_range: RangeInclusive<f32>,
+    request_resize: Option<f32>,
 }
 
 impl TopBottomPanel {
@@ -379,6 +380,7 @@ impl TopBottomPanel {
             resizable: false,
             default_height: None,
             height_range: 20.0..=f32::INFINITY,
+            request_resize: None
         }
     }
 
@@ -418,6 +420,12 @@ impl TopBottomPanel {
         self.frame = Some(frame);
         self
     }
+
+    /// Change the background color, margins, etc.
+    pub fn resize(mut self, height: Option<f32>) -> Self {
+        self.request_resize = height;
+        self
+    }
 }
 
 impl TopBottomPanel {
@@ -443,6 +451,7 @@ impl TopBottomPanel {
             resizable,
             default_height,
             height_range,
+            request_resize,
         } = self;
 
         let available_rect = ui.available_rect_before_wrap();
@@ -450,7 +459,8 @@ impl TopBottomPanel {
         {
             let state = ui.memory().id_data.get::<PanelState>(&id).copied();
             let mut height = if let Some(state) = state {
-                state.rect.height()
+                request_resize.unwrap_or(
+                    state.rect.height())
             } else {
                 default_height.unwrap_or_else(|| ui.style().spacing.interact_size.y)
             };
